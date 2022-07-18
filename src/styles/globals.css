@@ -14,3 +14,11 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.ant-carousel .slick-slider .slick-track,
+.ant-carousel .slick-slider .slick-list {
+  height: "160px";
+  line-height: "160px";
+  text-align: "center";
+  background-color: rgb(208, 226, 95);
+}
