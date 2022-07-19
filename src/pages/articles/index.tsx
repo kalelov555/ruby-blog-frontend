@@ -1,8 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "../../styles/Home.module.css";
-import { LikeOutlined, MessageOutlined, StarOutlined } from "@ant-design/icons";
-import { List, Space } from "antd";
+import { Button, List, Space } from "antd";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
@@ -17,25 +16,30 @@ export type Article = {
   images: [string];
 };
 
-const IconText = ({ icon, text }: { icon: React.FC; text: string }) => (
-  <Space>
-    {React.createElement(icon)}
-    {text}
-  </Space>
-);
+export type ArticleArray = {
+  type: string;
+  id: string;
+  attributes: Article;
+};
 
 const Home: NextPage = () => {
-  const [articles, setArticles] = useState([]);
+  const [articles, setArticles] = useState<ArticleArray[]>([]);
+  console.log(articles);
 
-  const [count, setCount] = useState(1);
+  const filterByDate = () => {
+    articles.sort((a, b) => {
+      return (
+        new Date(a.attributes.created_at).getTime() -
+        new Date(b.attributes.created_at).getTime()
+      );
+    });
+  };
+
   useEffect(() => {
-    if (count <= 1) {
-      axios
-        .get(`http://localhost:3000/articles/`)
-        .then((val) => setArticles(val.data.data));
-      setCount(count + 1);
-    }
-  }, [count]);
+    axios
+      .get(`http://localhost:3000/articles/`)
+      .then((val) => setArticles(val.data.data));
+  }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -49,6 +53,10 @@ const Home: NextPage = () => {
     return () => clearInterval(intervalId); //This is important
   }, [setArticles, articles]);
 
+  const attributes = articles.filter((object) => {
+    return object.attributes.visible !== false;
+  });
+
   return (
     <div className={styles.container}>
       <Head>
@@ -57,6 +65,9 @@ const Home: NextPage = () => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
       <Navbar />
+      <Button type='primary' style={{ margin: 15 }} onClick={filterByDate}>
+        Filter by date
+      </Button>
       <List
         itemLayout='vertical'
         size='large'
@@ -66,27 +77,10 @@ const Home: NextPage = () => {
           },
           pageSize: 3,
         }}
-        dataSource={articles}
+        dataSource={attributes}
         renderItem={({ attributes }: { attributes: Article }) => (
           <List.Item
             key={attributes.title}
-            actions={[
-              <IconText
-                icon={StarOutlined}
-                text='156'
-                key='list-vertical-star-o'
-              />,
-              <IconText
-                icon={LikeOutlined}
-                text='156'
-                key='list-vertical-like-o'
-              />,
-              <IconText
-                icon={MessageOutlined}
-                text='2'
-                key='list-vertical-message'
-              />,
-            ]}
             extra={<img src={attributes.images[0]} width={250} alt='' />}
           >
             <List.Item.Meta
